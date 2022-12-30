@@ -21,13 +21,13 @@ const https = require("https");
 const dotenv = require("dotenv");
 
 
-const isProduct = 0;
+const isProduct = 1;
 
 let chrome = {};
 let puppeteer;
 let options = {};
 
-if (isProduct) {
+if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   chrome = require("chrome-aws-lambda");
   puppeteer = require("puppeteer-core");
 } else {
@@ -277,7 +277,7 @@ app.get('/', async (req, res) => {
     let properties_detail = [];
     const zpid_url = `https://www.zillow.com/homedetails/${zpid}_zpid/`;
 
-    if (isProduct) {
+    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
       options = {
       args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
       defaultViewport: chrome.defaultViewport,
@@ -330,7 +330,7 @@ app.get('/', async (req, res) => {
 app.get("/api", async (req, res) => {
     let options = {};
   
-    if (isProduct) {
+    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
         options = {
         args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
         defaultViewport: chrome.defaultViewport,
