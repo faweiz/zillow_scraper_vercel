@@ -68,7 +68,8 @@ app.get('/', async (req, res) => {
   app.get('/properties/v2/list-for-sale/', async (req, res, next) => {
     // const { limit } = req.params;
     // const { address_parm } = req.params;
-    let address_parm = [];
+    let address_parm = [], properties = [];
+    var sdata = "", west = "", east = "", south = "", north = "";
     if(req.query.city && req.query.state_code){
         const address_city = req.query.city;
         const address_state = req.query.state_code;
@@ -77,10 +78,20 @@ app.get('/', async (req, res) => {
         const address_zipcode = req.query.zipcode;
         address_parm = address_zipcode;
     }
-    let properties = [];
-    let script = [], property_id = [], property_id_split = [], property_zpid = [], price  = [], status = [], web_url = [], beds = [], baths = [], address = [], addressStreet = [], addressCity = [], addressState = [], addressZipcode = [], 
-        living_area = [], living_area_unit = 'sqft', prop_type = [], latitude = [], longitude = [], thumbnail = [];
-    var sdata = "", west = "", east = "", south = "", north = "";
+    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+        options = {
+        args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+        defaultViewport: chrome.defaultViewport,
+        executablePath: await chrome.executablePath,
+        headless: true,
+        ignoreHTTPSErrors: true,
+          };
+      }else{
+          options = {
+              args: [],
+              headless: true,
+          };
+      }
 
     try {
         console.log(`Getting Zillow data`);
@@ -279,29 +290,30 @@ app.get('/', async (req, res) => {
 
     if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
       options = {
-      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-      defaultViewport: chrome.defaultViewport,
-      executablePath: await chrome.executablePath,
-      headless: true,
-      ignoreHTTPSErrors: true,
-        };
+        args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+        defaultViewport: chrome.defaultViewport,
+        executablePath: await chrome.executablePath,
+        headless: true,
+        ignoreHTTPSErrors: true,
+      };
     }else{
         options = {
             args: [],
-            headless: true,
+            headless: false,
         };
     }
 
     (async() =>{
     // Puppeteer
-        puppeteerExtra.use(pluginStealth());
+       // puppeteerExtra.use(pluginStealth());
         //const browser = await puppeteerExtra.launch({
-        const browser = await puppeteer.launch({
-            headless: false, 
-            // executablePath: puppeteer.executablePath(),
-            // executablePath : "/usr/bin/chromium-browser",
-            args: ['--no-sandbox'], // This was important. Can't remember why
-        });
+        // const browser = await puppeteer.launch({
+        //     headless: false, 
+        //     // executablePath: puppeteer.executablePath(),
+        //     // executablePath : "/usr/bin/chromium-browser",
+        //     args: ['--no-sandbox'], // This was important. Can't remember why
+        // });
+        const browser = await puppeteer.launch(options);
 
         const page = await browser.newPage();
         await page.goto(zpid_url);
@@ -332,12 +344,12 @@ app.get("/api", async (req, res) => {
   
     if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
         options = {
-        args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-        defaultViewport: chrome.defaultViewport,
-        executablePath: await chrome.executablePath,
-        headless: true,
-        ignoreHTTPSErrors: true,
-          };
+            args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+            defaultViewport: chrome.defaultViewport,
+            executablePath: await chrome.executablePath,
+            headless: true,
+            ignoreHTTPSErrors: true,
+        };
       }else{
           options = {
               args: [],
