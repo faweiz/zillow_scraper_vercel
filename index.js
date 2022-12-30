@@ -27,27 +27,27 @@ let chrome = {};
 let puppeteer;
 let options = {};
 
-if (isDev) {
+if (isProduct) {
   chrome = require("chrome-aws-lambda");
   puppeteer = require("puppeteer-core");
 } else {
   puppeteer = require("puppeteer");
 }
 
-if (isDev) {
-    options = {
-      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-      defaultViewport: chrome.defaultViewport,
-      executablePath: await chrome.executablePath,
-      headless: true,
-      ignoreHTTPSErrors: true,
-    };
-}else{
-    options = {
-        args: [],
-        headless: true,
-    };
-}
+// if (isProduct) {
+//     options = {
+//       args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+//       defaultViewport: chrome.defaultViewport,
+//       executablePath: await chrome.executablePath,
+//       headless: true,
+//       ignoreHTTPSErrors: true,
+//     };
+// }else{
+//     options = {
+//         args: [],
+//         headless: true,
+//     };
+// }
 
 
 dotenv.config();
@@ -277,6 +277,21 @@ app.get('/', async (req, res) => {
     let properties_detail = [];
     const zpid_url = `https://www.zillow.com/homedetails/${zpid}_zpid/`;
 
+    if (isProduct) {
+      options = {
+      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true,
+        };
+    }else{
+        options = {
+            args: [],
+            headless: true,
+        };
+    }
+
     (async() =>{
     // Puppeteer
         puppeteerExtra.use(pluginStealth());
@@ -309,5 +324,37 @@ app.get('/', async (req, res) => {
     })();
 
 });
+
+
+
+app.get("/api", async (req, res) => {
+    let options = {};
+  
+    if (isProduct) {
+        options = {
+        args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+        defaultViewport: chrome.defaultViewport,
+        executablePath: await chrome.executablePath,
+        headless: true,
+        ignoreHTTPSErrors: true,
+          };
+      }else{
+          options = {
+              args: [],
+              headless: true,
+          };
+      }
+  
+    try {
+      let browser = await puppeteer.launch(options);
+  
+      let page = await browser.newPage();
+      await page.goto("https://www.google.com");
+      res.send(await page.title());
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  });
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
