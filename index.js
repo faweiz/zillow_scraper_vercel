@@ -1,11 +1,54 @@
-import axios from "axios"
-import cheerio from "cheerio"
-import express, { response } from "express"
-import puppeteer  from "puppeteer"
-import puppeteerExtra  from "puppeteer-extra"
-import pluginStealth   from "puppeteer-extra-plugin-stealth"
-import https from "https"
-import dotenv from "dotenv"
+// import axios from "axios"
+// import cheerio from "cheerio"
+//import express, { response } from "express"
+//import puppeteer  from "puppeteer"
+// import puppeteerExtra  from "puppeteer-extra"
+// import pluginStealth   from "puppeteer-extra-plugin-stealth"
+// import https from "https"
+// import dotenv from "dotenv"
+
+// if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+//     import chrome from "chrome-aws-lambda"
+//     import puppeteer from "puppeteer-core"
+//   } else {
+//     puppeteer = require("puppeteer");
+//   }
+
+const express = require("express");
+const puppeteerExtra = require("puppeteer-extra");
+const pluginStealth = require("puppeteer-extra-plugin-stealth");
+const https = require("https");
+const dotenv = require("dotenv");
+
+
+const isProduct = 0;
+
+let chrome = {};
+let puppeteer;
+let options = {};
+
+if (isDev) {
+  chrome = require("chrome-aws-lambda");
+  puppeteer = require("puppeteer-core");
+} else {
+  puppeteer = require("puppeteer");
+}
+
+if (isDev) {
+    options = {
+      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true,
+    };
+}else{
+    options = {
+        args: [],
+        headless: true,
+    };
+}
+
 
 dotenv.config();
 
@@ -159,16 +202,14 @@ app.get('/', async (req, res) => {
             // Puppeteer
             puppeteerExtra.use(pluginStealth());
            // const browser = await puppeteerExtra.launch({
-            const browser = await puppeteer.launch({
-               headless: false, 
-                // executablePath: puppeteer.executablePath(),
-               // executablePath : "/usr/bin/chromium-browser",
-                ignoreDefaultArgs: ['--disable-extensions'],
-                // args:[
-                //     '--window-size=1200,800',
-                // ]
-                args: ['--no-sandbox'], // This was important. Can't remember why
-            });
+            // const browser = await puppeteer.launch({
+            //     args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+            //     defaultViewport: chrome.defaultViewport || process.env.CHROME_EXECUTABLE_PATH,
+            //     executablePath: await chrome.executablePath,
+            //     headless: true,
+            //     ignoreHTTPSErrors: true,
+            // });
+            const browser = await puppeteer.launch(options);
             const page = await browser.newPage();
             var url = `${baseUrl}/${address_parm}`;
             console.log(url);
