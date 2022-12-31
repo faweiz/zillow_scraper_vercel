@@ -347,35 +347,35 @@ app.get('/properties/v2/detail', async (req, res, next) => {
 
 
 
-// app.get("/api", async (req, res) => {
-//     let options = {};
+app.get("/api", async (req, res) => {
+   // let options = {};
   
-//     if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-//         options = {
-//             args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-//             defaultViewport: chrome.defaultViewport,
-//             executablePath: await chrome.executablePath,
-//             headless: true,
-//             ignoreHTTPSErrors: true,
-//         };
-//       }else{
-//           options = {
-//               args: [],
-//               headless: true,
-//           };
-//       }
+    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+        options = {
+            args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+            defaultViewport: chrome.defaultViewport,
+            executablePath: await chrome.executablePath,
+            headless: true,
+            ignoreHTTPSErrors: true,
+        };
+      }else{
+          options = {
+              args: [],
+              headless: true,
+          };
+      }
   
-//     try {
-//       let browser = await puppeteer.launch(options);
+    try {
+      let browser = await puppeteer.launch(options);
   
-//       let page = await browser.newPage();
-//       await page.goto("https://www.google.com");
-//       res.send(await page.title());
-//     } catch (err) {
-//       console.error(err);
-//       return null;
-//     }
-//   });
+      let page = await browser.newPage();
+      await page.goto("https://www.google.com");
+      res.send(await page.title());
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  });
 
 
   app.get('/image', async (req, res) => {
