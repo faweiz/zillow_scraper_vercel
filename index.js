@@ -382,9 +382,9 @@ app.get('/properties/v2/detail', async (req, res, next) => {
 
     if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
         options = {
-          // args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-          //defaultViewport: chrome.defaultViewport,
-          args: [...chrome.args, "--hide-scrollbars", "--disable-web-security", '--window-size=1200,800'],
+          args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+          defaultViewport: chrome.defaultViewport,
+          //args: [...chrome.args, "--hide-scrollbars", "--disable-web-security", '--window-size=1200,800'],
           executablePath: await chrome.executablePath,
           headless: true,
           ignoreHTTPSErrors: true,
