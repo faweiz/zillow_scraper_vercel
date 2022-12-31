@@ -20,6 +20,11 @@ const pluginStealth = require("puppeteer-extra-plugin-stealth");
 const https = require("https");
 const dotenv = require("dotenv");
 
+const randomUseragent = require('random-useragent');
+const random_useragent = randomUseragent.getRandom();
+const useragent_standard = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
+const userAgent = random_useragent || useragent_standard;
+console.log('userAgent: ', userAgent);
 
 const isProduct = 1;
 
@@ -65,7 +70,7 @@ app.get('/', async (req, res) => {
 
 // Get zip code details
 //app.get('/zillow/:zpid', async (req, res, next) => {
-  app.get('/properties/v2/list-for-sale/', async (req, res, next) => {
+app.get('/properties/v2/list-for-sale/', async (req, res, next) => {
     // const { limit } = req.params;
     // const { address_parm } = req.params;
     let address_parm = [], properties = [];
@@ -224,6 +229,7 @@ app.get('/', async (req, res) => {
             const page = await browser.newPage();
             var url = `${baseUrl}/${address_parm}`;
             console.log(url);
+            await page.setUserAgent(userAgent);
             await page.goto(url, { waitUntil: 'domcontentloaded' });
             await page.setViewport({
                 width: 1200,
@@ -283,23 +289,24 @@ app.get('/', async (req, res) => {
 });
 
 // app.get('/zillow/:zpid', async (req, res, next) => {
-    app.get('/properties/v2/detail', async (req, res, next) => {
+app.get('/properties/v2/detail', async (req, res, next) => {
     const zpid = req.query.property_id;
     let properties_detail = [];
     const zpid_url = `https://www.zillow.com/homedetails/${zpid}_zpid/`;
 
     if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
       options = {
-        args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-        defaultViewport: chrome.defaultViewport,
+        // args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+        //defaultViewport: chrome.defaultViewport,
+        args: [...chrome.args, "--hide-scrollbars", "--disable-web-security", '--window-size=1200,800'],
         executablePath: await chrome.executablePath,
         headless: true,
         ignoreHTTPSErrors: true,
       };
     }else{
         options = {
-            args: [],
-            headless: false,
+            args: ['--window-size=1200,800'],
+            headless: true,
         };
     }
 
@@ -314,8 +321,9 @@ app.get('/', async (req, res) => {
         //     args: ['--no-sandbox'], // This was important. Can't remember why
         // });
         const browser = await puppeteer.launch(options);
-
         const page = await browser.newPage();
+        await page.setViewport({ width: 1200, height: 800 });
+        await page.setUserAgent(userAgent);
         await page.goto(zpid_url);
 
         let quotes = await page.evaluate(() => {
@@ -326,7 +334,7 @@ app.get('/', async (req, res) => {
         let quotes_all = JSON.parse(quotes);
         let apiCache = JSON.parse(quotes_all.apiCache);
         let property_data = apiCache[`ForSaleShopperPlatformFullRenderQuery{\"zpid\":${zpid},\"contactFormRenderParameter\":{\"zpid\":${zpid},\"platform\":\"desktop\",\"isDoubleScroll\":true}}`].property;
-        console.log(property_data);
+        //console.log(property_data);
 
         properties_detail.push(property_data);
         res.json(properties_detail);
@@ -369,28 +377,44 @@ app.get('/', async (req, res) => {
 //     }
 //   });
 
-app.get("/api", async (req, res) => {
-    let options = {};
-  
+
+  app.get('/image', async (req, res) => {
+
     if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-      options = {
-        args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-        defaultViewport: chrome.defaultViewport,
-        executablePath: await chrome.executablePath,
-        headless: true,
-        ignoreHTTPSErrors: true,
-      };
-    }
-  
+        options = {
+          // args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+          //defaultViewport: chrome.defaultViewport,
+          args: [...chrome.args, "--hide-scrollbars", "--disable-web-security", '--window-size=1200,800'],
+          executablePath: await chrome.executablePath,
+          headless: true,
+          ignoreHTTPSErrors: true,
+        };
+      }else{
+          options = {
+              args: ['--window-size=1200,800'],
+              headless: true,
+          };
+      }
+
     try {
-      let browser = await puppeteer.launch(options);
+    //   const browser = await puppeteer.connect({
+    //       browserWSEndpoint: 'wss://chrome.browserless.io?token=da549f5d-deea-4389-9fca-f088af72b3a1' 
+    //   });
+      
+      const browser = await puppeteer.launch(options);
+      // The rest of your script remains the same
+      const page = await browser.newPage();
+      await page.setUserAgent(userAgent);
+      await page.goto('https://www.zillow.com/homedetails/36923545_zpid/', { waitUntil: 'domcontentloaded' });
   
-      let page = await browser.newPage();
-      await page.goto("https://www.google.com");
-      res.send(await page.title());
-    } catch (err) {
-      console.error(err);
-      return null;
+      const screenshot = await page.screenshot();
+  
+      res.end(screenshot, 'binary');
+      browser.close();
+    } catch (error) {
+      if (!res.headersSent) {
+        res.status(400).send(error.message);
+      }
     }
   });
 
