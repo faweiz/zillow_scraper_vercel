@@ -348,7 +348,7 @@ app.get('/properties/v2/detail', async (req, res, next) => {
 
 
 app.get("/api", async (req, res) => {
-   // let options = {};
+   let options = {};
   
     if (isProduct) {
         options = {
