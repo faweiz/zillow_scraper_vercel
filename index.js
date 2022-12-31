@@ -350,7 +350,7 @@ app.get('/properties/v2/detail', async (req, res, next) => {
 app.get("/api", async (req, res) => {
    // let options = {};
   
-    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    if (isProduct) {
         options = {
             args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
             defaultViewport: chrome.defaultViewport,
