@@ -32,7 +32,7 @@ let chrome = {};
 let puppeteer;
 let options = {};
 
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+if (isProduct) {
   chrome = require("chrome-aws-lambda");
   puppeteer = require("puppeteer-core");
 } else {
@@ -83,7 +83,7 @@ app.get('/properties/v2/list-for-sale/', async (req, res, next) => {
         const address_zipcode = req.query.zipcode;
         address_parm = address_zipcode;
     }
-    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    if (isProduct) {
         options = {
         args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
         defaultViewport: chrome.defaultViewport,
@@ -294,7 +294,7 @@ app.get('/properties/v2/detail', async (req, res, next) => {
     let properties_detail = [];
     const zpid_url = `https://www.zillow.com/homedetails/${zpid}_zpid/`;
 
-    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    if (isProduct) {
       options = {
         // args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
         //defaultViewport: chrome.defaultViewport,
@@ -380,7 +380,7 @@ app.get('/properties/v2/detail', async (req, res, next) => {
 
   app.get('/image', async (req, res) => {
 
-    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    if (isProduct) {
         options = {
           args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
           defaultViewport: chrome.defaultViewport,
